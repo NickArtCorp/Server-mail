@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,41 +8,99 @@
     <!-- Utilisation de Tailwind CSS pour un design rapide et propre -->
     <script src="https://cdn.tailwindcss.com"></script>
 </head>
+
 <body class="bg-gray-100 flex items-center justify-center min-h-screen">
 
     <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
         <h2 class="text-2xl font-bold mb-6 text-gray-800 text-center">Formulaire de Contact</h2>
-        
-        <form action="/send-email" method="POST" class="space-y-4">
-            
+
+        <!-- REMPLACEZ 'YOUR_FORM_ID' PAR VOTRE ID FORMSPREE (ex: https://formspree.io/f/xyza...) -->
+        <form id="contact-form" action="https://formspree.io/f/YOUR_FORM_ID" method="POST" class="space-y-4">
+
             <div>
                 <label class="block text-sm font-medium text-gray-700">Votre Nom</label>
-                <input type="text" name="name" required 
+                <input type="text" name="name" required
                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700">Votre Email</label>
-                <input type="email" name="email" required 
+                <input type="email" name="email" required
                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500">
             </div>
 
             <div>
                 <label class="block text-sm font-medium text-gray-700">Message</label>
-                <textarea name="message" rows="4" required 
+                <textarea name="message" rows="4" required
                     class="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-blue-500 focus:border-blue-500"></textarea>
             </div>
 
-            <button type="submit" 
+            <button type="submit" id="submit-btn"
                 class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transition duration-150">
                 Envoyer le message
             </button>
         </form>
-        
+
+        <!-- Messages de statut (cachés par défaut) -->
+        <div id="status-success" class="hidden mt-4 p-4 bg-green-100 text-green-700 rounded-md text-center">
+            Message envoyé avec succès ! Merci.
+        </div>
+        <div id="status-error" class="hidden mt-4 p-4 bg-red-100 text-red-700 rounded-md text-center">
+            Oups ! Une erreur est survenue.
+        </div>
+
         <p class="mt-4 text-xs text-gray-500 text-center">
-            Ce formulaire enverra les données au serveur local, qui les transmettra à Gmail.
+            Propulsé par Formspree pour GitHub Pages.
         </p>
     </div>
 
+    <script>
+        const form = document.getElementById("contact-form");
+        const submitBtn = document.getElementById("submit-btn");
+        const statusSuccess = document.getElementById("status-success");
+        const statusError = document.getElementById("status-error");
+
+        async function handleSubmit(event) {
+            event.preventDefault();
+            const data = new FormData(event.target);
+
+            // Désactiver le bouton pendant l'envoi
+            submitBtn.disabled = true;
+            submitBtn.textContent = "Envoi en cours...";
+
+            try {
+                const response = await fetch(event.target.action, {
+                    method: form.method,
+                    body: data,
+                    headers: {
+                        'Accept': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    statusSuccess.classList.remove("hidden");
+                    statusError.classList.add("hidden");
+                    form.reset();
+                } else {
+                    const jsonData = await response.json();
+                    console.error("Erreur Formspree:", jsonData);
+                    statusError.classList.remove("hidden");
+                    statusSuccess.classList.add("hidden");
+                }
+            } catch (error) {
+                console.error("Erreur réseau:", error);
+                statusError.classList.remove("hidden");
+                statusSuccess.classList.add("hidden");
+            } finally {
+                // Réactiver le bouton
+                submitBtn.disabled = false;
+                submitBtn.textContent = "Envoyer le message";
+            }
+        }
+
+        form.addEventListener("submit", handleSubmit);
+    </script>
+
 </body>
+
 </html>
